@@ -45,13 +45,6 @@
         .plus { color: var(--win-green); }
         .minus { color: var(--lose-red); }
 
-        @keyframes blink {
-            0% { background-color: #fff; }
-            50% { background-color: #FFF9C4; border-color: var(--primary-red); transform: scale(1.02); }
-            100% { background-color: #fff; }
-        }
-        .next-dealer-blink { animation: blink 1.2s ease-in-out infinite; box-shadow: 0 0 10px rgba(211, 47, 47, 0.3); }
-
         .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
         button { padding: 12px 5px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
@@ -63,11 +56,9 @@
         .btn-main { background: var(--primary-red); color: white; grid-column: span 4; font-size: 18px; padding: 16px; margin-top: 10px; }
         .btn-only-log { background: #607D8B; color: white; grid-column: span 4; padding: 12px; }
         .btn-line { background: var(--line-green); color: white; grid-column: span 4; padding: 12px; }
-        .btn-undo { background: #9E9E9E; color: white; grid-column: span 4; margin-top: 5px; }
         .btn-danger { background: #EF5350; color: white; width: 100%; margin-top: 20px; padding: 12px; }
 
         .tai-section { background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px dashed #ccc; }
-        .tai-note { font-size: 12px; color: var(--primary-red); font-weight: bold; margin-bottom: 5px; text-align: center; }
         .tag-group { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
         .tag { background: white; border: 1.5px solid #ddd; padding: 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; }
         .tag:active { background: #D32F2F; color: white; }
@@ -106,77 +97,52 @@
         <h3>🀄 當局結算</h3>
         
         <p style="margin:5px 0; font-size:14px;">1. 誰是莊家？</p>
-        <div class="btn-group" id="dealer_select"></div>
+        <div class="btn-group" id="dealer_select_area"></div>
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
             <span style="font-size:14px;">連莊次數:</span>
             <input type="number" id="streak_count" value="0" style="width:80px;" oninput="saveData()">
         </div>
 
         <p style="margin:5px 0; font-size:14px;">2. 誰贏了？</p>
-        <div class="btn-group" id="winner_select"></div>
+        <div class="btn-group" id="winner_select_area"></div>
 
         <p style="margin:5px 0; font-size:14px;">3. 方式 / 放槍者</p>
         <div class="btn-group">
             <button class="btn-type active" id="type_self" onclick="setType('self', this)">自摸 (三家付)</button>
             <button class="btn-type" id="type_gun" onclick="setType('gun', this)">放槍 (一家付)</button>
         </div>
+        
         <div id="loser_section" style="display:none; margin-top:10px;">
             <p style="margin:5px 0; font-size:12px; color:var(--lose-red);">請選擇放槍者：</p>
-            <div class="btn-group" id="loser_select"></div>
+            <div class="btn-group" id="loser_select_area"></div>
         </div>
 
         <div class="tai-section" style="margin-top:15px;">
-            <div class="tai-note">⚠️ 自摸台數已自動計算 (不含莊家台)</div>
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                <span style="font-size:14px; font-weight:bold;">目前台數:</span>
+                <span style="font-size:14px; font-weight:bold;">台數:</span>
                 <input type="number" id="tai_input" value="0" style="flex:1; border:2px solid var(--primary-red); font-weight:bold; color:var(--primary-red); text-align:center;">
                 <button onclick="document.getElementById('tai_input').value=0" style="background:#444; color:white; padding:5px 15px;">清零</button>
             </div>
-            
-            <div class="tag-cat">【基本台】</div>
+            <div class="tag-cat">【基本】</div>
             <div class="tag-group">
-                <span class="tag" onclick="addTai(1)">門清 +1</span>
-                <span class="tag" onclick="addTai(1)">平胡 +1</span>
-                <span class="tag" onclick="addTai(1)">花牌 +1</span>
-                <span class="tag" onclick="addTai(1)">三元牌 +1</span>
-                <span class="tag" onclick="addTai(1)">圈風/底風 +1</span>
+                <span class="tag" onclick="addTai(1)">門清+1</span><span class="tag" onclick="addTai(1)">平胡+1</span><span class="tag" onclick="addTai(1)">花牌+1</span><span class="tag" onclick="addTai(1)">三元牌+1</span>
             </div>
-            <div class="tag-cat">【進階台】</div>
+            <div class="tag-cat">【大牌】</div>
             <div class="tag-group">
-                <span class="tag" onclick="addTai(2)">全求人 +2</span>
-                <span class="tag" onclick="addTai(2)">花槓 +2</span>
-                <span class="tag" onclick="addTai(4)">碰碰胡 +4</span>
-                <span class="tag" onclick="addTai(4)">小三元 +4</span>
-                <span class="tag" onclick="addTai(4)">混一色 +4</span>
-            </div>
-            <div class="tag-cat">【大牌台】</div>
-            <div class="tag-group">
-                <span class="tag" onclick="addTai(8)">大三元 +8</span>
-                <span class="tag" onclick="addTai(8)">小四喜 +8</span>
-                <span class="tag" onclick="addTai(8)">清一色 +8</span>
-                <span class="tag" onclick="addTai(16)">大四喜 +16</span>
-                <span class="tag" onclick="addTai(16)">天/地胡 +16</span>
+                <span class="tag" onclick="addTai(4)">碰碰胡+4</span><span class="tag" onclick="addTai(4)">混一色+4</span><span class="tag" onclick="addTai(8)">大三元+8</span><span class="tag" onclick="addTai(8)">清一色+8</span>
             </div>
         </div>
 
         <div class="btn-group" style="margin-top:15px;">
             <button class="btn-main" onclick="calculateResult(true)">確認送出並發 LINE 📤</button>
             <button class="btn-only-log" onclick="calculateResult(false)">僅紀錄 📝</button>
-            <button class="btn-line" onclick="sendCurrentScore()">📢 傳送目前總分</button>
-            <button class="btn-undo" id="undo_btn" onclick="undoLast()" style="display:none;">回上一步 (撤銷)</button>
+            <button class="btn-undo" id="undo_btn" onclick="undoLast()" style="display:none; grid-column: span 4;">回上一步</button>
         </div>
-
+        
         <div style="text-align:center; margin-top:20px;">
-            <input type="password" id="admin_pwd" placeholder="解鎖管理(8)" oninput="checkPwd(this.value)" style="width:100px; text-align:center; font-size:12px;">
+            <input type="password" id="admin_pwd" placeholder="管理(8)" oninput="checkPwd(this.value)" style="width:80px; text-align:center; font-size:12px;">
         </div>
         <button class="btn-danger" id="reset_btn" onclick="clearAllData()" style="display:none;">🧨 重置所有資料</button>
-    </div>
-
-    <div id="modal_overlay" onclick="closeAnalysis()"></div>
-    <div id="analysis_modal">
-        <h3 id="ana_name"></h3>
-        <div id="ana_content"></div>
-        <button onclick="closeAnalysis()" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px;">關閉</button>
     </div>
 
     <div class="card">
@@ -184,49 +150,46 @@
         <div class="log-list" id="log_list"></div>
     </div>
 
+    <div id="modal_overlay" onclick="closeAnalysis()"></div>
+    <div id="analysis_modal"><h3 id="ana_name"></h3><div id="ana_content"></div><button onclick="closeAnalysis()" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px;">關閉</button></div>
+
 <script>
     let players = [{id:0, score:0}, {id:1, score:0}, {id:2, score:0}, {id:3, score:0}];
     let history = [];
     let winds = ["東", "南", "西", "北"];
     let selectedDealer = 0, selectedWinner = 0, selectedLoser = null, currentType = 'self';
 
-    const WIND_OPTIONS = ["東", "南", "西", "北", "無"];
+    window.onload = function() { loadData(); syncUI(); };
 
-    // 核心：初始化
-    window.onload = function() { 
-        loadData(); 
-        syncUI(); 
-    };
+    function getPlayerName(id) { return document.getElementById(`p${id}_name`).value || `玩家${id+1}`; }
 
-    function getPlayerName(id) { 
-        return document.getElementById(`p${id}_name`).value || `玩家${id+1}`; 
+    function syncUI() {
+        renderWindSelects();
+        renderBoard();
+        renderSelectionBtns();
+        updateLog();
     }
 
-    // 更新風位下拉選單
     function renderWindSelects() {
+        const options = ["東", "南", "西", "北", "無"];
         for(let i=0; i<4; i++) {
             const select = document.getElementById(`p${i}_wind`);
             if(!select) continue;
-            const currentWind = winds[i];
-            select.innerHTML = WIND_OPTIONS.map(w => {
-                const isUsed = winds.some((usedWind, idx) => usedWind === w && idx !== i && w !== "無");
-                return `<option value="${w}" ${w === currentWind ? 'selected' : ''} ${isUsed ? 'disabled' : ''}>${w}</option>`;
-            }).join('');
+            const current = winds[i];
+            select.innerHTML = options.map(w => `<option value="${w}" ${w === current ? 'selected' : ''}>${w}</option>`).join('');
         }
     }
 
     function handleWindChange(idx) {
         winds[idx] = document.getElementById(`p${idx}_wind`).value;
-        saveData();
-        syncUI();
+        saveData(); syncUI();
     }
 
-    // 渲染總分看板
     function renderBoard() {
         const board = document.getElementById('score_board');
         if(!board) return;
         board.innerHTML = players.map(p => `
-            <div class="player-score" id="board_p${p.id}" onclick="showAnalysis(${p.id})">
+            <div class="player-score" onclick="showAnalysis(${p.id})">
                 <div class="score-label">${winds[p.id]}位</div>
                 <div class="score-name">${getPlayerName(p.id)}</div>
                 <div class="score-val ${p.score >= 0 ? 'plus' : 'minus'}">${p.score}</div>
@@ -234,70 +197,51 @@
         `).join('');
     }
 
-    // 渲染所有選擇按鈕 (莊家、贏家、輸家)
-    function renderPlayerBtns() {
-        const config = {
-            'dealer_select': selectedDealer,
-            'winner_select': selectedWinner,
-            'loser_select': selectedLoser
+    function renderSelectionBtns() {
+        const areas = {
+            'dealer_select_area': selectedDealer,
+            'winner_select_area': selectedWinner,
+            'loser_select_area': selectedLoser
         };
-        for (const [gid, activeId] of Object.entries(config)) {
-            const container = document.getElementById(gid);
-            if (!container) continue;
-            container.innerHTML = players.map(p => `
-                <button class="btn-player ${activeId === p.id ? 'active' : ''}" onclick="selectPlayer('${gid}', ${p.id})">${getPlayerName(p.id)}</button>
+        for (const [id, active] of Object.entries(areas)) {
+            const el = document.getElementById(id);
+            if(!el) continue;
+            el.innerHTML = players.map(p => `
+                <button class="btn-player ${active === p.id ? 'active' : ''}" onclick="selectPlayer('${id}', ${p.id})">${getPlayerName(p.id)}</button>
             `).join('');
         }
     }
 
-    // 同步所有 UI 組件
-    function syncUI() {
-        renderWindSelects();
-        renderBoard();
-        renderPlayerBtns();
-        updateLog();
+    function selectPlayer(area, id) {
+        if(area === 'dealer_select_area') selectedDealer = id;
+        if(area === 'winner_select_area') selectedWinner = id;
+        if(area === 'loser_select_area') selectedLoser = id;
+        saveData(); syncUI();
     }
 
-    function selectPlayer(gid, id) {
-        if(gid==='dealer_select') {
-            selectedDealer = id;
-            players.forEach(p => {
-                const el = document.getElementById(`board_p${p.id}`);
-                if(el) el.classList.remove('next-dealer-blink');
-            });
-        }
-        if(gid==='winner_select') selectedWinner = id;
-        if(gid==='loser_select') selectedLoser = id;
-        saveData();
-        syncUI();
+    function setType(t, b) {
+        currentType = t;
+        Array.from(b.parentElement.children).forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        document.getElementById('loser_section').style.display = t === 'gun' ? 'block' : 'none';
     }
 
-    function setType(t, b) { 
-        currentType = t; 
-        Array.from(b.parentElement.children).forEach(x => x.classList.remove('active')); 
-        b.classList.add('active'); 
-        document.getElementById('loser_section').style.display = t === 'gun' ? 'block' : 'none'; 
-    }
-
-    function addTai(n) { 
-        const input = document.getElementById('tai_input');
-        input.value = parseInt(input.value) + n; 
-    }
+    function addTai(n) { document.getElementById('tai_input').value = parseInt(document.getElementById('tai_input').value) + n; }
 
     function calculateResult(isSendLine) {
         const base = parseInt(document.getElementById('base_money').value) || 0;
         const taiPrice = parseInt(document.getElementById('tai_money').value) || 0;
         const streak = parseInt(document.getElementById('streak_count').value) || 0;
         const taiCount = parseInt(document.getElementById('tai_input').value) || 0;
-        
-        const dealerExtraTai = (2 * streak) + 1;
+        const dealerTai = (2 * streak) + 1;
+
         let roundResults = [0, 0, 0, 0];
         let detailLog = "";
 
         if (currentType === 'self') {
             players.forEach(p => {
                 if (p.id !== selectedWinner) {
-                    let totalTai = taiCount + ((selectedWinner === selectedDealer || p.id === selectedDealer) ? dealerExtraTai : 0);
+                    let totalTai = taiCount + ((selectedWinner === selectedDealer || p.id === selectedDealer) ? dealerTai : 0);
                     let amt = base + (totalTai * taiPrice);
                     roundResults[p.id] -= amt; roundResults[selectedWinner] += amt;
                 }
@@ -305,107 +249,70 @@
             detailLog = `${getPlayerName(selectedWinner)} 自摸 (${taiCount}台)`;
         } else {
             if (selectedLoser === null || selectedLoser === selectedWinner) { alert("請選擇放槍者"); return; }
-            let totalTai = taiCount + ((selectedWinner === selectedDealer || selectedLoser === selectedDealer) ? dealerExtraTai : 0);
+            let totalTai = taiCount + ((selectedWinner === selectedDealer || selectedLoser === selectedDealer) ? dealerTai : 0);
             let amt = base + (totalTai * taiPrice);
             roundResults[selectedLoser] -= amt; roundResults[selectedWinner] += amt;
             detailLog = `${getPlayerName(selectedWinner)} 贏 ${getPlayerName(selectedLoser)} (${taiCount}台)`;
         }
 
-        let nextDealer = selectedDealer, nextStreak = 0;
-        if (selectedWinner === selectedDealer) { 
-            nextStreak = streak + 1; 
-        } else {
-            nextDealer = (selectedDealer + 1) % 4;
-            setTimeout(() => { 
-                const el = document.getElementById(`board_p${nextDealer}`);
-                if(el) el.classList.add('next-dealer-blink');
-            }, 100);
-        }
+        let nextDealer = selectedDealer, nextStreak = (selectedWinner === selectedDealer) ? streak + 1 : 0;
+        if (selectedWinner !== selectedDealer) nextDealer = (selectedDealer + 1) % 4;
 
-        const logEntry = { results: roundResults, log: detailLog, winner: selectedWinner, loser: (currentType==='gun'?selectedLoser:null), isSelf: (currentType==='self'), streak: streak, prevDealer: selectedDealer, nextDealer, nextStreak };
-        history.push(logEntry);
+        history.push({ results: roundResults, log: detailLog, prevDealer: selectedDealer, prevStreak: streak });
         players.forEach((p, i) => p.score += roundResults[i]);
-        
         selectedDealer = nextDealer;
         document.getElementById('streak_count').value = nextStreak;
         document.getElementById('tai_input').value = 0;
-        
-        saveData();
-        syncUI();
+        saveData(); syncUI();
 
         if (isSendLine) {
-            let msg = `🀄【雀神戰報】\n結果：${detailLog}\n──────────\n🏆 目前總分：\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
+            let msg = `🀄【戰報】${detailLog}\n🏆目前分數：\n` + players.map(p => `${getPlayerName(p.id)}: ${p.score}`).join('\n');
             window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
         }
     }
 
-    function sendCurrentScore() {
-        let msg = `📊【目前最新總計】\n──────────\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
-        window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
+    function checkPwd(v) {
+        document.getElementById('undo_btn').style.display = v === '8' ? 'block' : 'none';
+        document.getElementById('reset_btn').style.display = v === '8' ? 'block' : 'none';
     }
 
-    function showAnalysis(id) {
-        const name = getPlayerName(id);
-        const wins = history.filter(h => h.winner === id);
-        const losses = history.filter(h => h.loser === id);
-        const selfDraws = wins.filter(h => h.isSelf).length;
-        
-        document.getElementById('ana_name').innerText = `📊 ${name} 數據分析`;
-        document.getElementById('ana_content').innerHTML = `
-            總計積分：${players[id].score}<br>
-            自摸次數：${selfDraws} 次<br>
-            被胡/放槍：${losses.length} 次
-        `;
-        document.getElementById('analysis_modal').style.display = 'block';
-        document.getElementById('modal_overlay').style.display = 'block';
-    }
-
-    function closeAnalysis() { 
-        document.getElementById('analysis_modal').style.display = 'none'; 
-        document.getElementById('modal_overlay').style.display = 'none'; 
-    }
-
-    function checkPwd(val) {
-        const isAuth = (val === "8");
-        document.getElementById('undo_btn').style.display = isAuth ? 'block' : 'none';
-        document.getElementById('reset_btn').style.display = isAuth ? 'block' : 'none';
-    }
-
-    function undoLast() { 
-        if (history.length === 0) return; 
-        const last = history.pop(); 
-        players.forEach((p, i) => p.score -= last.results[i]); 
-        selectedDealer = last.prevDealer; 
-        document.getElementById('streak_count').value = last.streak; 
-        saveData(); 
-        syncUI(); 
-    }
-
-    function clearAllData() { 
-        if (confirm("確定清空嗎？")) { 
-            localStorage.removeItem('mj_v5_pro_final'); 
-            location.reload(); 
-        } 
+    function undoLast() {
+        if (history.length === 0) return;
+        const last = history.pop();
+        players.forEach((p, i) => p.score -= last.results[i]);
+        selectedDealer = last.prevDealer;
+        document.getElementById('streak_count').value = last.prevStreak;
+        saveData(); syncUI();
     }
 
     function saveData() {
-        const data = { 
-            players, history, 
-            names: [0,1,2,3].map(i => document.getElementById(`p${i}_name`).value), 
-            base: document.getElementById('base_money').value, 
-            tai: document.getElementById('tai_money').value, 
-            dealer: selectedDealer, 
-            streak: document.getElementById('streak_count').value, 
-            winds 
-        };
-        localStorage.setItem('mj_v5_pro_final', JSON.stringify(data));
+        const data = { players, history, names: [0,1,2,3].map(i => document.getElementById(`p${i}_name`).value), winds, dealer: selectedDealer, streak: document.getElementById('streak_count').value };
+        localStorage.setItem('mj_pro_v6', JSON.stringify(data));
     }
 
     function loadData() {
-        const saved = localStorage.getItem('mj_v5_pro_final');
+        const saved = localStorage.getItem('mj_pro_v6');
         if (saved) {
-            const data = JSON.parse(saved);
-            players = data.players; history = data.history;
-            data.names.forEach((n, i) => document.getElementById(`p${i}_name`).value = n);
-            document.getElementById('base_money').value = data.base; 
-            document.getElementById('t
+            const d = JSON.parse(saved);
+            players = d.players; history = d.history; winds = d.winds;
+            d.names.forEach((n, i) => document.getElementById(`p${i}_name`).value = n);
+            selectedDealer = d.dealer; document.getElementById('streak_count').value = d.streak;
+        }
+    }
+
+    function updateLog() {
+        document.getElementById('log_list').innerHTML = history.slice().reverse().map(h => `<div class="log-item"><strong>${h.log}</strong></div>`).join('');
+    }
+
+    function showAnalysis(id) {
+        document.getElementById('ana_name').innerText = getPlayerName(id);
+        document.getElementById('ana_content').innerText = `目前積分：${players[id].score}`;
+        document.getElementById('analysis_modal').style.display = 'block';
+        document.getElementById('modal_overlay').style.display = 'block';
+    }
+    function closeAnalysis() { document.getElementById('analysis_modal').style.display = 'none'; document.getElementById('modal_overlay').style.display = 'none'; }
+    function clearAllData() { if(confirm("重置？")) { localStorage.clear(); location.reload(); } }
+</script>
+</body>
+</html>
+

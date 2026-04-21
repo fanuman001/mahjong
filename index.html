@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>雀神記帳王 Pro (LINE同步版)</title>
+    <title>雀神記帳王 Pro Max (全功能版)</title>
     <style>
         :root {
             --primary-red: #D32F2F;
@@ -18,6 +18,7 @@
             font-family: -apple-system, "Noto Sans TC", sans-serif;
             background-color: var(--soft-white);
             margin: 0; padding: 10px; color: #333;
+            padding-bottom: 50px;
         }
 
         .card {
@@ -42,17 +43,18 @@
             gap: 5px; text-align: center;
         }
 
-        .player-score { padding: 10px 5px; border-radius: 8px; background: #f8f8f8; transition: all 0.3s; position: relative; }
+        .player-score { padding: 10px 5px; border-radius: 8px; background: #f8f8f8; transition: all 0.3s; border: 2px solid transparent; }
         .score-val { font-weight: bold; font-size: 1.1em; }
         .plus { color: var(--win-green); }
         .minus { color: var(--lose-red); }
 
+        /* 莊家閃爍提醒 */
         @keyframes blink {
             0% { background-color: #fff; }
-            50% { background-color: #FFEB3B; border: 2px solid var(--primary-red); }
+            50% { background-color: #FFEB3B; border-color: var(--primary-red); }
             100% { background-color: #fff; }
         }
-        .next-dealer-blink { animation: blink 1s linear infinite; border-radius: 8px; }
+        .next-dealer-blink { animation: blink 1s linear infinite; }
 
         .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
         button { padding: 12px 5px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
@@ -64,28 +66,28 @@
         .btn-type.active { background: #555; color: white; }
 
         .btn-main { background: var(--primary-red); color: white; grid-column: span 4; font-size: 18px; padding: 15px; margin-top: 10px; }
-        .btn-line { background: var(--line-green); color: white; grid-column: span 4; margin-top: 5px; padding: 10px; }
+        .btn-line { background: var(--line-green); color: white; grid-column: span 4; margin-top: 5px; padding: 12px; font-size: 16px; display: none; }
         .btn-undo { background: #666; color: white; grid-column: span 4; margin-top: 5px; }
-        .btn-reset-tai { background: #eee; color: #333; border: 1px solid #ccc; }
-        .btn-danger { background: #f44336; color: white; width: 100%; margin-top: 10px; padding: 10px; }
+        .btn-reset-tai { background: #eee; color: #333; border: 1px solid #ccc; white-space: nowrap; }
+        .btn-danger { background: #f44336; color: white; width: 100%; margin-top: 20px; padding: 10px; }
 
         .tag-group { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
         .tag { background: #fdf2f2; border: 1px solid var(--primary-red); padding: 5px 12px; border-radius: 20px; font-size: 13px; }
 
         .log-list { max-height: 250px; overflow-y: auto; font-size: 12px; border-top: 1px solid #eee; margin-top: 10px; }
-        .log-item { padding: 8px 0; border-bottom: 1px solid #eee; line-height: 1.4; }
+        .log-item { padding: 10px 0; border-bottom: 1px solid #eee; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <h2>🧧 雀神記帳王 Pro</h2>
+    <h2>🧧 雀神記帳王 Pro Max</h2>
 
     <div class="card">
         <div class="settings-grid">
-            <input type="text" id="p0_name" oninput="saveData()" placeholder="玩家 1" value="東">
-            <input type="text" id="p1_name" oninput="saveData()" placeholder="玩家 2" value="南">
-            <input type="text" id="p2_name" oninput="saveData()" placeholder="玩家 3" value="西">
-            <input type="text" id="p3_name" oninput="saveData()" placeholder="玩家 4" value="北">
+            <input type="text" id="p0_name" oninput="saveData(); syncUI();" placeholder="玩家 1" value="東">
+            <input type="text" id="p1_name" oninput="saveData(); syncUI();" placeholder="玩家 2" value="南">
+            <input type="text" id="p2_name" oninput="saveData(); syncUI();" placeholder="玩家 3" value="西">
+            <input type="text" id="p3_name" oninput="saveData(); syncUI();" placeholder="玩家 4" value="北">
             <input type="number" id="base_money" oninput="saveData()" placeholder="底" value="100">
             <input type="number" id="tai_money" oninput="saveData()" placeholder="台" value="20">
         </div>
@@ -96,7 +98,7 @@
     <div class="card">
         <p>1. 當局莊家 / 連莊數</p>
         <div class="btn-group" id="dealer_select"></div>
-        <input type="number" id="streak_count" value="0">
+        <input type="number" id="streak_count" value="0" oninput="saveData()">
 
         <p>2. 誰贏了？</p>
         <div class="btn-group" id="winner_select"></div>
@@ -113,22 +115,23 @@
         </div>
 
         <p>5. 台數 (不含莊家加成)</p>
-        <div style="display:flex; gap:10px; align-items:center;">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
             <input type="number" id="tai_input" value="0" style="flex:1;">
-            <button onclick="resetTai()" class="btn-reset-tai">一鍵歸零</button>
+            <button onclick="resetTai()" class="btn-reset-tai">台數歸零</button>
         </div>
         <div class="tag-group">
             <span class="tag" onclick="addTai(1)">門清+1</span><span class="tag" onclick="addTai(1)">平胡+1</span>
             <span class="tag" onclick="addTai(1)">花牌+1</span><span class="tag" onclick="addTai(2)">全求人+2</span>
             <span class="tag" onclick="addTai(4)">碰碰胡+4</span><span class="tag" onclick="addTai(4)">混一色+4</span>
-            <span class="tag" onclick="addTai(8)">清一色+8</span>
+            <span class="tag" onclick="addTai(8)">清一色+8</span><span class="tag" onclick="addTai(16)">天胡+16</span>
         </div>
 
         <div class="btn-group">
             <button class="btn-main" onclick="calculateResult()">確認送出並發送 LINE 🀄</button>
+            <button id="line_btn" class="btn-line" onclick="openLineShare()">📢 手動轉傳戰報</button>
             <button class="btn-undo" onclick="undoLast()">回上一步 (撤銷)</button>
         </div>
-        <button class="btn-danger" onclick="clearAllData()">🧨 結束這一將 (清除所有資料)</button>
+        <button class="btn-danger" onclick="clearAllData()">🧨 結束這一將 (所有資料重置)</button>
     </div>
 
     <div class="card">
@@ -140,8 +143,9 @@
     let players = [{id:0, score:0}, {id:1, score:0}, {id:2, score:0}, {id:3, score:0}];
     let history = [];
     let selectedDealer = 0, selectedWinner = 0, selectedLoser = null, currentType = 'self';
+    let lastLineMsg = "";
 
-    window.onload = function() { loadData(); renderBoard(); renderPlayerBtns(); };
+    window.onload = function() { loadData(); syncUI(); };
 
     function getPlayerName(id) { return document.getElementById(`p${id}_name`).value || `玩家${id+1}`; }
 
@@ -152,25 +156,24 @@
             tai: document.getElementById('tai_money').value,
             dealer: selectedDealer, streak: document.getElementById('streak_count').value
         };
-        localStorage.setItem('mj_pro_data', JSON.stringify(data));
-        renderBoard(); renderPlayerBtns();
+        localStorage.setItem('mj_promax_data', JSON.stringify(data));
     }
 
     function loadData() {
-        const saved = localStorage.getItem('mj_pro_data');
+        const saved = localStorage.getItem('mj_promax_data');
         if (saved) {
             const data = JSON.parse(saved);
             players = data.players; history = data.history;
             data.names.forEach((name, i) => document.getElementById(`p${i}_name`).value = name);
             document.getElementById('base_money').value = data.base;
             document.getElementById('tai_money').value = data.tai;
-            selectedDealer = data.dealer;
+            selectedDealer = parseInt(data.dealer);
             document.getElementById('streak_count').value = data.streak;
             updateLog();
         }
     }
 
-    function clearAllData() { if (confirm("確定要清除所有資料嗎？")) { localStorage.removeItem('mj_pro_data'); location.reload(); } }
+    function syncUI() { renderBoard(); renderPlayerBtns(); }
 
     function renderBoard() {
         document.getElementById('score_board').innerHTML = players.map(p => `
@@ -195,7 +198,7 @@
         if(groupId === 'dealer_select') { selectedDealer = id; players.forEach(p => document.getElementById(`board_p${p.id}`).classList.remove('next-dealer-blink')); }
         if(groupId === 'winner_select') selectedWinner = id;
         if(groupId === 'loser_select') selectedLoser = id;
-        saveData();
+        saveData(); syncUI();
     }
 
     function setType(type, btn) { currentType = type; Array.from(btn.parentElement.children).forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('loser_section').style.display = type === 'gun' ? 'block' : 'none'; }
@@ -223,28 +226,24 @@
             });
             detailLog = `${getPlayerName(selectedWinner)} 自摸 (${taiCount}台)`;
         } else {
-            if (selectedLoser === null || selectedLoser === selectedWinner) { alert("請正確選擇放槍者"); return; }
+            if (selectedLoser === null || selectedLoser === selectedWinner) { alert("請選擇放槍者"); return; }
             let totalTai = taiCount + ((selectedWinner === selectedDealer || selectedLoser === selectedDealer) ? dealerExtraTai : 0);
             let amt = base + (totalTai * taiPrice);
             roundResults[selectedLoser] -= amt; roundResults[selectedWinner] += amt;
             detailLog = `${getPlayerName(selectedWinner)} 贏 ${getPlayerName(selectedLoser)} (${taiCount}台)`;
         }
 
-        // 組合 LINE 訊息
         lineMsg += `結果：${detailLog}\n`;
         if(selectedWinner === selectedDealer || (currentType === 'gun' && selectedLoser === selectedDealer) || currentType === 'self') {
-            lineMsg += `莊家/連莊：+${dealerExtraTai}台\n`;
+            lineMsg += `莊家連莊：+${dealerExtraTai}台\n`;
         }
-        lineMsg += `────────────────\n💰 本局收付：\n`;
-        players.forEach((p, idx) => {
-            lineMsg += `${getPlayerName(idx)}：${roundResults[idx] > 0 ? '+' : ''}${roundResults[idx]}\n`;
-        });
-        lineMsg += `────────────────\n🏆 目前戰績：\n`;
-        players.forEach((p, idx) => {
-            lineMsg += `${getPlayerName(idx)}：${p.score + roundResults[idx]}\n`;
-        });
+        lineMsg += `──────────────\n💰 本局收付：\n`;
+        players.forEach((p, idx) => { lineMsg += `${getPlayerName(idx)}：${roundResults[idx] > 0 ? '+' : ''}${roundResults[idx]}\n`; });
+        lineMsg += `──────────────\n🏆 目前總戰績：\n`;
+        players.forEach((p, idx) => { lineMsg += `${getPlayerName(idx)}：${p.score + roundResults[idx]}\n`; });
+        
+        lastLineMsg = lineMsg;
 
-        // 更新狀態
         const prevDealer = selectedDealer, prevStreak = streak;
         let nextDealer = selectedDealer, nextStreak = 0;
         if (selectedWinner === selectedDealer) { nextStreak = streak + 1; } 
@@ -258,17 +257,20 @@
         resetTai();
         saveData();
         updateLog();
+        renderBoard();
+        renderPlayerBtns();
 
-        // **跳轉發送 LINE**
-        const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
-        window.location.href = lineUrl;
+        document.getElementById('line_btn').style.display = 'block';
+        window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
     }
+
+    function openLineShare() { window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(lastLineMsg); }
 
     function updateLog() {
         document.getElementById('log_list').innerHTML = history.slice().reverse().map(h => `
             <div class="log-item">
                 <strong>${h.log}</strong> <span style="color:var(--primary-red)">${h.dealerExtra}</span><br>
-                <span style="color:#666; font-size:11px;">明細：${h.results.map((r, i) => getPlayerName(i) + (r >= 0 ? '+'+r : r)).join(' , ')}</span>
+                <span style="color:#666; font-size:11px;">${h.results.map((r, i) => getPlayerName(i) + (r >= 0 ? '+'+r : r)).join(' , ')}</span>
             </div>
         `).join('');
     }
@@ -279,10 +281,11 @@
         players.forEach((p, idx) => p.score -= last.results[idx]);
         selectedDealer = last.prevDealer;
         document.getElementById('streak_count').value = last.prevStreak;
-        saveData();
-        updateLog();
+        document.getElementById('line_btn').style.display = 'none';
+        saveData(); syncUI(); updateLog();
     }
+
+    function clearAllData() { if (confirm("確定要重置所有分數、紀錄與名字嗎？")) { localStorage.removeItem('mj_promax_data'); location.reload(); } }
 </script>
 </body>
 </html>
-

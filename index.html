@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>雀神記帳王 Pro Max (修復版)</title>
+    <title>雀神記帳王 Pro Max (台灣牌型優化版)</title>
     <style>
         :root {
             --primary-red: #D32F2F;
@@ -69,9 +69,9 @@
         .tai-section { background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px dashed #ccc; }
         .tai-note { font-size: 12px; color: var(--primary-red); font-weight: bold; margin-bottom: 5px; text-align: center; }
         .tag-group { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
-        .tag { background: white; border: 1.5px solid #ddd; padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-        .tag:active { background: #fdeaea; }
-        .tag-cat { width: 100%; font-size: 12px; color: #888; margin-top: 10px; border-bottom: 1px solid #eee; }
+        .tag { background: white; border: 1.5px solid #ddd; padding: 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .tag:active { background: #D32F2F; color: white; border-color: #D32F2F; }
+        .tag-cat { width: 100%; font-size: 12px; color: #888; margin-top: 10px; border-bottom: 1px solid #eee; padding-bottom: 2px; font-weight: bold; }
 
         .log-list { max-height: 200px; overflow-y: auto; font-size: 13px; margin-top: 10px; background: #fafafa; border-radius: 8px; }
         .log-item { padding: 10px; border-bottom: 1px solid #eee; }
@@ -117,28 +117,47 @@
 
         <p style="margin:5px 0; font-size:14px;">3. 方式 / 放槍者</p>
         <div class="btn-group">
-            <button class="btn-type active" id="type_self" onclick="setType('self', this)">自摸</button>
-            <button class="btn-type" id="type_gun" onclick="setType('gun', this)">放槍</button>
+            <button class="btn-type active" id="type_self" onclick="setType('self', this)">自摸 (三家付)</button>
+            <button class="btn-type" id="type_gun" onclick="setType('gun', this)">放槍 (一家付)</button>
         </div>
         <div id="loser_section" style="display:none; margin-top:10px;">
+            <p style="margin:5px 0; font-size:12px; color:var(--lose-red);">請選擇放槍者：</p>
             <div class="btn-group" id="loser_select"></div>
         </div>
 
         <div class="tai-section" style="margin-top:15px;">
-            <div class="tai-note">⚠️ 台數選擇：不含莊家台、不含底</div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <input type="number" id="tai_input" value="0" style="flex:1; border:2px solid var(--primary-red); font-weight:bold; color:var(--primary-red);">
-                <button onclick="document.getElementById('tai_input').value=0" style="background:#eee; padding:5px 10px;">歸零</button>
+            <div class="tai-note">⚠️ 台數不含莊家台、不含底；自摸已自動計算</div>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+                <span style="font-size:14px; font-weight:bold;">目前台數:</span>
+                <input type="number" id="tai_input" value="0" style="flex:1; border:2px solid var(--primary-red); font-weight:bold; color:var(--primary-red); text-align:center;">
+                <button onclick="document.getElementById('tai_input').value=0" style="background:#444; color:white; padding:5px 15px;">清零</button>
             </div>
             
-            <div class="tag-cat">【快速選擇台數】</div>
+            <div class="tag-cat">【基本台】</div>
             <div class="tag-group">
                 <span class="tag" onclick="addTai(1)">門清 +1</span>
-                <span class="tag" onclick="addTai(1)">自摸 +1</span>
+                <span class="tag" onclick="addTai(1)">平胡 +1</span>
                 <span class="tag" onclick="addTai(1)">花牌 +1</span>
                 <span class="tag" onclick="addTai(1)">三元牌 +1</span>
+                <span class="tag" onclick="addTai(1)">圈/底風 +1</span>
+            </div>
+
+            <div class="tag-cat">【進階台】</div>
+            <div class="tag-group">
+                <span class="tag" onclick="addTai(2)">全求人 +2</span>
+                <span class="tag" onclick="addTai(2)">花槓 +2</span>
                 <span class="tag" onclick="addTai(4)">碰碰胡 +4</span>
+                <span class="tag" onclick="addTai(4)">小三元 +4</span>
+                <span class="tag" onclick="addTai(4)">混一色 +4</span>
+            </div>
+
+            <div class="tag-cat">【大牌台】</div>
+            <div class="tag-group">
+                <span class="tag" onclick="addTai(8)">大三元 +8</span>
+                <span class="tag" onclick="addTai(8)">小四喜 +8</span>
                 <span class="tag" onclick="addTai(8)">清一色 +8</span>
+                <span class="tag" onclick="addTai(16)">大四喜 +16</span>
+                <span class="tag" onclick="addTai(16)">天/地胡 +16</span>
             </div>
         </div>
 
@@ -150,16 +169,16 @@
         </div>
 
         <div style="text-align:center; margin-top:20px;">
-            <input type="password" id="admin_pwd" placeholder="輸入 8 解鎖管理" oninput="checkPwd(this.value)" style="width:150px; text-align:center;">
+            <input type="password" id="admin_pwd" placeholder="管理密碼(8)" oninput="checkPwd(this.value)" style="width:120px; text-align:center; font-size:12px;">
         </div>
-        <button class="btn-danger" id="reset_btn" onclick="clearAllData()">🧨 重置所有資料</button>
+        <button class="btn-danger" id="reset_btn" onclick="clearAllData()">🧨 結算並重置資料</button>
     </div>
 
     <div id="modal_overlay" onclick="closeAnalysis()"></div>
     <div id="analysis_modal">
         <h3 id="ana_name"></h3>
-        <div id="ana_content"></div>
-        <button onclick="closeAnalysis()" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px;">關閉</button>
+        <div id="ana_content" style="line-height:1.6;"></div>
+        <button onclick="closeAnalysis()" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px;">關閉視窗</button>
     </div>
 
     <div class="card">
@@ -197,11 +216,11 @@
 
     function saveData() {
         const data = { players, history, names: [0,1,2,3].map(i => document.getElementById(`p${i}_name`).value), base: document.getElementById('base_money').value, tai: document.getElementById('tai_money').value, dealer: selectedDealer, streak: document.getElementById('streak_count').value, winds };
-        localStorage.setItem('mj_v5_pro_data', JSON.stringify(data));
+        localStorage.setItem('mj_v5_taiwan_data', JSON.stringify(data));
     }
 
     function loadData() {
-        const saved = localStorage.getItem('mj_v5_pro_data');
+        const saved = localStorage.getItem('mj_v5_taiwan_data');
         if (saved) {
             const data = JSON.parse(saved);
             players = data.players; history = data.history;
@@ -234,15 +253,10 @@
     }
 
     function renderPlayerBtns() {
-        const containers = {
-            'dealer_select': selectedDealer,
-            'winner_select': selectedWinner,
-            'loser_select': selectedLoser
-        };
-        Object.keys(containers).forEach(gid => {
+        ['dealer_select', 'winner_select', 'loser_select'].forEach(gid => {
             const container = document.getElementById(gid);
             if (!container) return;
-            const activeId = containers[gid];
+            const activeId = (gid==='dealer_select')?selectedDealer:(gid==='winner_select'?selectedWinner:selectedLoser);
             container.innerHTML = players.map(p => `
                 <button class="btn-player ${activeId === p.id ? 'active' : ''}" onclick="selectPlayer('${gid}', ${p.id})">${getPlayerName(p.id)}</button>
             `).join('');
@@ -264,23 +278,27 @@
         const taiPrice = parseInt(document.getElementById('tai_money').value) || 0;
         const streak = parseInt(document.getElementById('streak_count').value) || 0;
         const taiCount = parseInt(document.getElementById('tai_input').value) || 0;
+        
+        // 台灣牌邏輯：莊家連莊台數 (2n+1)
         const dealerExtraTai = (2 * streak) + 1;
         let roundResults = [0, 0, 0, 0];
         let detailLog = "";
 
         if (currentType === 'self') {
+            // 自摸：台數自動加 1 台（此處根據使用者習慣，若輸入台數未包含自摸，邏輯應在此 +1，但使用者說自摸已經選自摸就有台，此處維持 taiCount）
             players.forEach(p => {
                 if (p.id !== selectedWinner) {
-                    let totalTai = taiCount + ((selectedWinner === selectedDealer || p.id === selectedDealer) ? dealerExtraTai : 0);
-                    let amt = base + (totalTai * taiPrice);
+                    // 若贏家或輸家是莊家，需加連莊台
+                    let finalTai = taiCount + ((selectedWinner === selectedDealer || p.id === selectedDealer) ? dealerExtraTai : 0);
+                    let amt = base + (finalTai * taiPrice);
                     roundResults[p.id] -= amt; roundResults[selectedWinner] += amt;
                 }
             });
             detailLog = `${getPlayerName(selectedWinner)} 自摸 (${taiCount}台)`;
         } else {
             if (selectedLoser === null || selectedLoser === selectedWinner) { alert("請選擇放槍者"); return; }
-            let totalTai = taiCount + ((selectedWinner === selectedDealer || selectedLoser === selectedDealer) ? dealerExtraTai : 0);
-            let amt = base + (totalTai * taiPrice);
+            let finalTai = taiCount + ((selectedWinner === selectedDealer || selectedLoser === selectedDealer) ? dealerExtraTai : 0);
+            let amt = base + (finalTai * taiPrice);
             roundResults[selectedLoser] -= amt; roundResults[selectedWinner] += amt;
             detailLog = `${getPlayerName(selectedWinner)} 贏 ${getPlayerName(selectedLoser)} (${taiCount}台)`;
         }
@@ -309,7 +327,7 @@
     }
 
     function sendCurrentScore() {
-        let msg = `📊【目前總分】\n──────────\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
+        let msg = `📊【目前最新總計】\n──────────\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
         window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
     }
 
@@ -318,13 +336,14 @@
         const wins = history.filter(h => h.winner === id);
         const losses = history.filter(h => h.loser === id);
         const selfDraws = wins.filter(h => h.isSelf).length;
-        const maxStreak = Math.max(0, ...wins.map(h => h.streak));
+        const gunWins = wins.filter(h => !h.isSelf).length;
         
-        document.getElementById('ana_name').innerText = `📊 ${name} 戰析`;
+        document.getElementById('ana_name').innerText = `📊 ${name} 戰績分析`;
         document.getElementById('ana_content').innerHTML = `
-            自摸：${selfDraws} 次 / 被胡：${losses.length} 次<br>
-            最高連莊：${maxStreak} 次<br>
-            當前總分：${players[id].score}
+            💰 目前積分：<b>${players[id].score}</b><br>
+            ✨ 自摸次數：${selfDraws} 次<br>
+            🎯 胡牌次數：${gunWins} 次<br>
+            💀 放槍次數：${losses.length} 次
         `;
         document.getElementById('analysis_modal').style.display = 'block';
         document.getElementById('modal_overlay').style.display = 'block';
@@ -332,9 +351,5 @@
 
     function closeAnalysis() { document.getElementById('analysis_modal').style.display = 'none'; document.getElementById('modal_overlay').style.display = 'none'; }
     function undoLast() { if (history.length === 0) return; const last = history.pop(); players.forEach((p, i) => p.score -= last.results[i]); selectedDealer = last.prevDealer; document.getElementById('streak_count').value = last.streak; saveData(); updateLog(); syncUI(); }
-    function clearAllData() { if (confirm("確定清空嗎？")) { localStorage.removeItem('mj_v5_pro_data'); location.reload(); } }
-    function updateLog() { document.getElementById('log_list').innerHTML = history.slice().reverse().map(h => `<div class="log-item"><strong>${h.log}</strong><br><small>${h.results.map((r, i) => getPlayerName(i).substring(0,2) + (r >= 0 ? '+'+r : r)).join(' , ')}</small></div>`).join(''); }
-</script>
-</body>
-</html>
-
+    function clearAllData() { if (confirm("確定清空嗎？所有紀錄將無法找回。")) { localStorage.removeItem('mj_v5_taiwan_data'); location.reload(); } }
+    function updateLog() { document.getElementById('log_list').innerHTML = history.slice().reverse().map(h => `<div class="log-item"><strong>${h.log}</strong><br><smal

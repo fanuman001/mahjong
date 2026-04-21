@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>雀神記帳王 Pro Max (UI/UX 優化版)</title>
+    <title>雀神記帳王 Pro Max (修復版)</title>
     <style>
         :root {
             --primary-red: #D32F2F;
@@ -31,18 +31,14 @@
         h2 { color: var(--primary-red); text-align: center; margin-top: 5px; margin-bottom: 15px; text-shadow: 1px 1px 0px var(--gold); }
         h3 { font-size: 16px; margin: 0 0 10px 0; border-left: 4px solid var(--primary-red); padding-left: 8px; }
 
-        /* 設定區優化 */
         .settings-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .player-row { grid-column: span 4; display: flex; gap: 8px; align-items: center; background: #fefefe; padding: 5px; border-radius: 10px; border: 1px solid #eee; }
-        input[type="text"], input[type="number"] { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; transition: border 0.3s; }
-        input:focus { border-color: var(--wind-blue); outline: none; }
+        input[type="text"], input[type="number"] { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; transition: border 0.3s; width: 100%; box-sizing: border-box; }
         
-        select.wind-select { background: var(--wind-blue); color: white; border: none; border-radius: 8px; padding: 10px; font-weight: bold; width: 70px; font-size: 15px; appearance: none; text-align: center; }
+        select.wind-select { background: var(--wind-blue); color: white; border: none; border-radius: 8px; padding: 10px; font-weight: bold; width: 80px; font-size: 15px; cursor: pointer; }
 
-        /* 戰況面板 */
         .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
-        .player-score { padding: 12px 5px; border-radius: 12px; background: #fff; border: 2px solid #eee; transition: all 0.3s; cursor: pointer; position: relative; }
-        .player-score:active { transform: scale(0.95); }
+        .player-score { padding: 12px 5px; border-radius: 12px; background: #fff; border: 2px solid #eee; transition: all 0.3s; cursor: pointer; }
         .score-label { font-size: 11px; color: #777; margin-bottom: 4px; }
         .score-name { font-weight: bold; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .score-val { font-weight: 800; font-size: 1.2em; }
@@ -57,32 +53,29 @@
         .next-dealer-blink { animation: blink 1.2s ease-in-out infinite; box-shadow: 0 0 10px rgba(211, 47, 47, 0.3); }
 
         .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-        button { padding: 12px 5px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s; }
-        button:active { filter: brightness(0.8); }
+        button { padding: 12px 5px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
         .btn-player { background: #f0f0f0; border: 1px solid #ddd; color: #555; }
-        .btn-player.active { background: var(--primary-red); color: white; border-color: var(--gold); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-player.active { background: var(--primary-red); color: white; border-color: var(--gold); }
         .btn-type { background: #f0f0f0; border: 1px solid #ddd; }
         .btn-type.active { background: #444; color: white; }
 
         .btn-main { background: var(--primary-red); color: white; grid-column: span 4; font-size: 18px; padding: 16px; margin-top: 10px; }
         .btn-only-log { background: #607D8B; color: white; grid-column: span 4; padding: 12px; }
-        .btn-line { background: var(--line-green); color: white; grid-column: span 4; padding: 12px; font-size: 15px; }
+        .btn-line { background: var(--line-green); color: white; grid-column: span 4; padding: 12px; }
         .btn-undo { background: #9E9E9E; color: white; grid-column: span 4; margin-top: 5px; display: none; }
         .btn-danger { background: #EF5350; color: white; width: 100%; margin-top: 20px; padding: 12px; display: none; }
 
-        /* 台數標籤優化 */
         .tai-section { background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px dashed #ccc; }
         .tai-note { font-size: 12px; color: var(--primary-red); font-weight: bold; margin-bottom: 5px; text-align: center; }
         .tag-group { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
-        .tag { background: white; border: 1.5px solid #ddd; padding: 6px 10px; border-radius: 8px; font-size: 13px; color: #444; }
-        .tag:active { background: #fdeaea; border-color: var(--primary-red); }
+        .tag { background: white; border: 1.5px solid #ddd; padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+        .tag:active { background: #fdeaea; }
         .tag-cat { width: 100%; font-size: 12px; color: #888; margin-top: 10px; border-bottom: 1px solid #eee; }
 
-        .log-list { max-height: 250px; overflow-y: auto; font-size: 13px; margin-top: 10px; background: #fafafa; border-radius: 8px; }
-        .log-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .log-list { max-height: 200px; overflow-y: auto; font-size: 13px; margin-top: 10px; background: #fafafa; border-radius: 8px; }
+        .log-item { padding: 10px; border-bottom: 1px solid #eee; }
 
-        /* 分析視窗 */
         #analysis_modal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 88%; max-width: 400px; background: white; border-radius: 20px;
@@ -96,20 +89,14 @@
     <h2>🧧 雀神記帳王 Pro Max</h2>
 
     <div class="card">
-        <h3>📍 玩家與規則</h3>
+        <h3>📍 玩家座位配置</h3>
         <div class="settings-grid">
             <div class="player-row"><select class="wind-select" id="p0_wind" onchange="handleWindChange(0)"></select><input type="text" id="p0_name" value="Julia" oninput="saveData(); syncUI();"></div>
             <div class="player-row"><select class="wind-select" id="p1_wind" onchange="handleWindChange(1)"></select><input type="text" id="p1_name" value="Ora" oninput="saveData(); syncUI();"></div>
             <div class="player-row"><select class="wind-select" id="p2_wind" onchange="handleWindChange(2)"></select><input type="text" id="p2_name" value="Eva" oninput="saveData(); syncUI();"></div>
             <div class="player-row"><select class="wind-select" id="p3_wind" onchange="handleWindChange(3)"></select><input type="text" id="p3_name" value="James" oninput="saveData(); syncUI();"></div>
-            <div style="grid-column: span 2;">
-                <label style="font-size: 12px;">底 (元)</label>
-                <input type="number" id="base_money" value="100" oninput="saveData()">
-            </div>
-            <div style="grid-column: span 2;">
-                <label style="font-size: 12px;">台 (元)</label>
-                <input type="number" id="tai_money" value="20" oninput="saveData()">
-            </div>
+            <div style="grid-column: span 2;"><label style="font-size:12px;">底 (元)</label><input type="number" id="base_money" value="100" oninput="saveData()"></div>
+            <div style="grid-column: span 2;"><label style="font-size:12px;">台 (元)</label><input type="number" id="tai_money" value="20" oninput="saveData()"></div>
         </div>
     </div>
 
@@ -118,80 +105,61 @@
     <div class="card">
         <h3>🀄 當局結算</h3>
         
-        <p style="margin:0 0 5px 0; font-size:14px;">1. 誰是莊家 / 連莊數</p>
+        <p style="margin:5px 0; font-size:14px;">1. 選擇莊家 / 連莊數</p>
         <div class="btn-group" id="dealer_select"></div>
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
             <span style="font-size:14px;">連莊次數:</span>
             <input type="number" id="streak_count" value="0" style="width:80px;" oninput="saveData()">
         </div>
 
-        <p style="margin:0 0 5px 0; font-size:14px;">2. 贏家與方式</p>
+        <p style="margin:5px 0; font-size:14px;">2. 誰贏了？</p>
         <div class="btn-group" id="winner_select"></div>
-        <div class="btn-group">
-            <button class="btn-type active" id="type_self" onclick="setType('self', this)">自摸 (三家付)</button>
-            <button class="btn-type" id="type_gun" onclick="setType('gun', this)">放槍 (一家付)</button>
-        </div>
 
-        <div id="loser_section" style="display:none;">
-            <p style="margin:0 0 5px 0; font-size:14px; color:var(--lose-red);">放槍者是？</p>
+        <p style="margin:5px 0; font-size:14px;">3. 方式 / 放槍者</p>
+        <div class="btn-group">
+            <button class="btn-type active" id="type_self" onclick="setType('self', this)">自摸</button>
+            <button class="btn-type" id="type_gun" onclick="setType('gun', this)">放槍</button>
+        </div>
+        <div id="loser_section" style="display:none; margin-top:10px;">
             <div class="btn-group" id="loser_select"></div>
         </div>
 
-        <div class="tai-section">
-            <div class="tai-note">⚠️ 以下點擊台數：不含莊家台、不含底</div>
+        <div class="tai-section" style="margin-top:15px;">
+            <div class="tai-note">⚠️ 台數選擇：不含莊家台、不含底</div>
             <div style="display:flex; gap:10px; align-items:center;">
-                <span style="font-size:14px; font-weight:bold;">目前台數:</span>
-                <input type="number" id="tai_input" value="0" style="flex:1; border:2px solid var(--primary-red); color:var(--primary-red); font-weight:bold;">
+                <input type="number" id="tai_input" value="0" style="flex:1; border:2px solid var(--primary-red); font-weight:bold; color:var(--primary-red);">
                 <button onclick="document.getElementById('tai_input').value=0" style="background:#eee; padding:5px 10px;">歸零</button>
             </div>
             
-            <div class="tag-cat">【基本台】</div>
+            <div class="tag-cat">【快速選擇台數】</div>
             <div class="tag-group">
                 <span class="tag" onclick="addTai(1)">門清 +1</span>
                 <span class="tag" onclick="addTai(1)">自摸 +1</span>
-                <span class="tag" onclick="addTai(1)">平胡 +1</span>
                 <span class="tag" onclick="addTai(1)">花牌 +1</span>
                 <span class="tag" onclick="addTai(1)">三元牌 +1</span>
-                <span class="tag" onclick="addTai(1)">底風/圈風 +1</span>
-            </div>
-            
-            <div class="tag-cat">【進階台】</div>
-            <div class="tag-group">
-                <span class="tag" onclick="addTai(2)">全求人 +2</span>
-                <span class="tag" onclick="addTai(2)">花槓 +2</span>
                 <span class="tag" onclick="addTai(4)">碰碰胡 +4</span>
-                <span class="tag" onclick="addTai(4)">混一色 +4</span>
-                <span class="tag" onclick="addTai(4)">小三元 +4</span>
-            </div>
-
-            <div class="tag-cat">【大牌台】</div>
-            <div class="tag-group">
                 <span class="tag" onclick="addTai(8)">清一色 +8</span>
-                <span class="tag" onclick="addTai(8)">大三元 +8</span>
-                <span class="tag" onclick="addTai(8)">小四喜 +8</span>
-                <span class="tag" onclick="addTai(16)">大四喜 +16</span>
-                <span class="tag" onclick="addTai(16)">天胡/地胡 +16</span>
             </div>
         </div>
 
-        <div class="btn-group">
-            <button class="btn-main" onclick="calculateResult(true)">確認送出並發 LINE 戰報 📤</button>
-            <button class="btn-only-log" onclick="calculateResult(false)">僅紀錄此局不發送 📝</button>
-            <button class="btn-line" onclick="sendCurrentScore()">📢 僅傳送目前總分</button>
+        <div class="btn-group" style="margin-top:15px;">
+            <button class="btn-main" onclick="calculateResult(true)">確認送出並發 LINE 📤</button>
+            <button class="btn-only-log" onclick="calculateResult(false)">僅紀錄 📝</button>
+            <button class="btn-line" onclick="sendCurrentScore()">📢 傳送目前總分</button>
             <button class="btn-undo" id="undo_btn" onclick="undoLast()">回上一步 (撤銷)</button>
         </div>
 
         <div style="text-align:center; margin-top:20px;">
-            <input type="password" id="admin_pwd" placeholder="輸入 8 解鎖管理功能" oninput="checkPwd(this.value)" style="width:180px; text-align:center;">
+            <input type="password" id="admin_pwd" placeholder="輸入 8 解鎖管理" oninput="checkPwd(this.value)" style="width:150px; text-align:center;">
         </div>
-        <button class="btn-danger" id="reset_btn" onclick="clearAllData()">🧨 結束這一將並清空資料</button>
+        <button class="btn-danger" id="reset_btn" onclick="clearAllData()">🧨 重置所有資料</button>
     </div>
 
     <div id="modal_overlay" onclick="closeAnalysis()"></div>
     <div id="analysis_modal">
-        <h3 id="ana_name" style="border-bottom: 2px solid var(--gold); padding-bottom:10px;"></h3>
-        <div id="ana_content" style="font-size:15px; line-height:2;"></div>
-        <button onclick="closeAnalysis()" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px;">回到記帳</button>
+        <h3 id="ana_name"></h3>
+        <div id="ana_content"></div>
+        <button onclick="closeAnalysis()" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px;">關閉</button>
     </div>
 
     <div class="card">
@@ -216,34 +184,32 @@
             const select = document.getElementById(`p${i}_wind`);
             const currentWind = winds[i];
             select.innerHTML = WIND_OPTIONS.map(w => {
-                // 防呆：如果該風向已被其他玩家選擇，且不是自己目前選的，就禁用
                 const isUsed = winds.some((usedWind, idx) => usedWind === w && idx !== i && w !== "無");
-                return `<option value="${w}" ${w === currentWind ? 'selected' : ''} ${isUsed ? 'disabled style="color:#ccc;"' : ''}>${w}</option>`;
+                return `<option value="${w}" ${w === currentWind ? 'selected' : ''} ${isUsed ? 'disabled' : ''}>${w}</option>`;
             }).join('');
         }
     }
 
     function handleWindChange(idx) {
-        const newVal = document.getElementById(`p${idx}_wind`).value;
-        winds[idx] = newVal;
-        saveData();
-        renderWindSelects(); // 重新渲染以更新其他人的 disabled 狀態
-        syncUI();
+        winds[idx] = document.getElementById(`p${idx}_wind`).value;
+        saveData(); renderWindSelects(); syncUI();
     }
 
     function saveData() {
         const data = { players, history, names: [0,1,2,3].map(i => document.getElementById(`p${i}_name`).value), base: document.getElementById('base_money').value, tai: document.getElementById('tai_money').value, dealer: selectedDealer, streak: document.getElementById('streak_count').value, winds };
-        localStorage.setItem('mj_v5_data', JSON.stringify(data));
+        localStorage.setItem('mj_v5_pro_data', JSON.stringify(data));
     }
 
     function loadData() {
-        const saved = localStorage.getItem('mj_v5_data');
+        const saved = localStorage.getItem('mj_v5_pro_data');
         if (saved) {
             const data = JSON.parse(saved);
             players = data.players; history = data.history;
             data.names.forEach((n, i) => document.getElementById(`p${i}_name`).value = n);
-            document.getElementById('base_money').value = data.base; document.getElementById('tai_money').value = data.tai;
-            selectedDealer = parseInt(data.dealer); document.getElementById('streak_count').value = data.streak;
+            document.getElementById('base_money').value = data.base; 
+            document.getElementById('tai_money').value = data.tai;
+            selectedDealer = parseInt(data.dealer); 
+            document.getElementById('streak_count').value = data.streak;
             if(data.winds) winds = data.winds;
             updateLog();
         }
@@ -268,9 +234,15 @@
     }
 
     function renderPlayerBtns() {
-        ['dealer_select', 'winner_select', 'loser_select'].forEach(gid => {
+        const containers = {
+            'dealer_select': selectedDealer,
+            'winner_select': selectedWinner,
+            'loser_select': selectedLoser
+        };
+        Object.keys(containers).forEach(gid => {
             const container = document.getElementById(gid);
-            const activeId = (gid==='dealer_select')?selectedDealer:(gid==='winner_select'?selectedWinner:selectedLoser);
+            if (!container) return;
+            const activeId = containers[gid];
             container.innerHTML = players.map(p => `
                 <button class="btn-player ${activeId === p.id ? 'active' : ''}" onclick="selectPlayer('${gid}', ${p.id})">${getPlayerName(p.id)}</button>
             `).join('');
@@ -288,10 +260,10 @@
     function addTai(n) { document.getElementById('tai_input').value = parseInt(document.getElementById('tai_input').value) + n; }
 
     function calculateResult(isSendLine) {
-        const base = parseInt(document.getElementById('base_money').value);
-        const taiPrice = parseInt(document.getElementById('tai_money').value);
-        const streak = parseInt(document.getElementById('streak_count').value);
-        const taiCount = parseInt(document.getElementById('tai_input').value);
+        const base = parseInt(document.getElementById('base_money').value) || 0;
+        const taiPrice = parseInt(document.getElementById('tai_money').value) || 0;
+        const streak = parseInt(document.getElementById('streak_count').value) || 0;
+        const taiCount = parseInt(document.getElementById('tai_input').value) || 0;
         const dealerExtraTai = (2 * streak) + 1;
         let roundResults = [0, 0, 0, 0];
         let detailLog = "";
@@ -317,7 +289,7 @@
         if (selectedWinner === selectedDealer) { nextStreak = streak + 1; } 
         else {
             nextDealer = (selectedDealer + 1) % 4;
-            setTimeout(() => document.getElementById(`board_p${nextDealer}`).classList.add('next-dealer-blink'), 100);
+            setTimeout(() => { if(document.getElementById(`board_p${nextDealer}`)) document.getElementById(`board_p${nextDealer}`).classList.add('next-dealer-blink')}, 100);
         }
 
         const logEntry = { results: roundResults, log: detailLog, winner: selectedWinner, loser: (currentType==='gun'?selectedLoser:null), isSelf: (currentType==='self'), streak: streak, prevDealer: selectedDealer, nextDealer, nextStreak };
@@ -331,16 +303,13 @@
         saveData(); updateLog(); syncUI();
 
         if (isSendLine) {
-            let msg = `🀄【雀神戰報】\n結果：${detailLog}\n`;
-            if(logEntry.winner===logEntry.prevDealer || logEntry.loser===logEntry.prevDealer || logEntry.isSelf) msg += `連莊加成：+${dealerExtraTai}台\n`;
-            msg += `──────────\n💰 收付：\n` + players.map((p, i) => `${getPlayerName(i)}：${roundResults[i]>=0?'+':''}${roundResults[i]}`).join('\n');
-            msg += `\n──────────\n🏆 總分：\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
+            let msg = `🀄【雀神戰報】\n結果：${detailLog}\n──────────\n🏆 總分：\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
             window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
         }
     }
 
     function sendCurrentScore() {
-        let msg = `📊【目前總戰績】\n──────────\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
+        let msg = `📊【目前總分】\n──────────\n` + players.map((p, i) => `${getPlayerName(i)}：${p.score}`).join('\n');
         window.location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
     }
 
@@ -349,18 +318,23 @@
         const wins = history.filter(h => h.winner === id);
         const losses = history.filter(h => h.loser === id);
         const selfDraws = wins.filter(h => h.isSelf).length;
-        const maxStreak = Math.max(0, ...history.filter(h => h.winner === id).map(h => h.streak));
+        const maxStreak = Math.max(0, ...wins.map(h => h.streak));
         
-        let nemesis = {}, victims = {};
-        history.forEach(h => {
-            if(h.winner === id && h.loser !== null) victims[h.loser] = (victims[h.loser] || 0) + 1;
-            if(h.loser === id) nemesis[h.winner] = (nemesis[h.winner] || 0) + 1;
-        });
-
-        const findMax = (obj) => Object.entries(obj).sort((a,b) => b[1]-a[1])[0];
-        const topVictim = findMax(victims);
-        const topNemesis = findMax(nemesis);
-
-        document.getElementById('ana_name').innerText = `📊 ${name} 的戰績分析`;
+        document.getElementById('ana_name').innerText = `📊 ${name} 戰析`;
         document.getElementById('ana_content').innerHTML = `
-            自摸次數：<span styl
+            自摸：${selfDraws} 次 / 被胡：${losses.length} 次<br>
+            最高連莊：${maxStreak} 次<br>
+            當前總分：${players[id].score}
+        `;
+        document.getElementById('analysis_modal').style.display = 'block';
+        document.getElementById('modal_overlay').style.display = 'block';
+    }
+
+    function closeAnalysis() { document.getElementById('analysis_modal').style.display = 'none'; document.getElementById('modal_overlay').style.display = 'none'; }
+    function undoLast() { if (history.length === 0) return; const last = history.pop(); players.forEach((p, i) => p.score -= last.results[i]); selectedDealer = last.prevDealer; document.getElementById('streak_count').value = last.streak; saveData(); updateLog(); syncUI(); }
+    function clearAllData() { if (confirm("確定清空嗎？")) { localStorage.removeItem('mj_v5_pro_data'); location.reload(); } }
+    function updateLog() { document.getElementById('log_list').innerHTML = history.slice().reverse().map(h => `<div class="log-item"><strong>${h.log}</strong><br><small>${h.results.map((r, i) => getPlayerName(i).substring(0,2) + (r >= 0 ? '+'+r : r)).join(' , ')}</small></div>`).join(''); }
+</script>
+</body>
+</html>
+

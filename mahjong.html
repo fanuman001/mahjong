@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>新春大吉-麻將計分板</title>
+    <style>
+        :root {
+            --primary-red: #D32F2F;
+            --gold: #FFD700;
+            --soft-white: #FFF9F0;
+            --win-green: #2E7D32;
+            --lose-red: #C62828;
+        }
+
+        body {
+            font-family: -apple-system, "Noto Sans TC", sans-serif;
+            background-color: var(--soft-white);
+            margin: 0;
+            padding: 10px;
+            color: #333;
+        }
+
+        /* 區塊樣式 */
+        .card {
+            background: white;
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 { color: var(--primary-red); text-align: center; margin-top: 0; }
+
+        /* 設定區排版 */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        /* 戰況表 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .player-score {
+            padding: 10px 5px;
+            border-radius: 8px;
+            background: #f8f8f8;
+        }
+
+        .score-val { font-weight: bold; font-size: 1.2em; }
+        .plus { color: var(--win-green); }
+        .minus { color: var(--lose-red); }
+
+        /* 操作區按鈕 */
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 12px 5px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-player { background: #eee; border: 1px solid #ddd; }
+        .btn-player.active { background: var(--primary-red); color: white; border-color: var(--gold); }
+        
+        .btn-type { background: #eee; }
+        .btn-type.active { background: #555; color: white; }
+
+        .btn-main { background: var(--primary-red); color: white; grid-column: span 4; font-size: 18px; padding: 15px; margin-top: 10px; }
+        .btn-undo { background: #666; color: white; grid-column: span 4; margin-top: 5px; }
+
+        /* 台數快速鍵 */
+        .tag-group { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+        .tag { background: #fdf2f2; border: 1px solid var(--primary-red); padding: 5px 10px; border-radius: 20px; font-size: 13px; }
+
+        /* 歷史紀錄 */
+        .log-list { max-height: 200px; overflow-y: auto; font-size: 13px; border-top: 1px solid #eee; margin-top: 10px; }
+        .log-item { padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <h2>🧧 雀神記帳王</h2>
+
+    <div class="card">
+        <div class="settings-grid">
+            <input type="text" id="p0_name" placeholder="玩家 東" value="東">
+            <input type="text" id="p1_name" placeholder="玩家 南" value="南">
+            <input type="text" id="p2_name" placeholder="玩家 西" value="西">
+            <input type="text" id="p3_name" placeholder="玩家 北" value="北">
+            <input type="number" id="base_money" placeholder="底" value="100">
+            <input type="number" id="tai_money" placeholder="台" value="20">
+        </div>
+    </div>
+
+    <div class="card dashboard" id="score_board">
+        </div>
+
+    <div class="card">
+        <p>1. 誰是莊家？ (連莊數)</p>
+        <div class="btn-group" id="dealer_select"></div>
+        <input type="number" id="streak_count" placeholder="連幾？(0, 1, 2...)" value="0">
+
+        <p>2. 誰贏了？</p>
+        <div class="btn-group" id="winner_select"></div>
+
+        <p>3. 贏牌方式？</p>
+        <div class="btn-group">
+            <button class="btn-type active" onclick="setType('self', this)">自摸</button>
+            <button class="btn-type" onclick="setType('gun', this)">放槍</button>
+        </div>
+
+        <div id="loser_section" style="display:none;">
+            <p>4. 誰放槍？</p>
+            <div class="btn-group" id="loser_select"></div>
+        </div>
+
+        <p>5. 總台數 (不含莊家加成)</p>
+        <input type="number" id="tai_input" value="0">
+        <div class="tag-group">
+            <span class="tag" onclick="addTai(1)">門清 +1</span>
+            <span class="tag" onclick="addTai(1)">平胡 +1</span>
+            <span class="tag" onclick="addTai(1)">花牌 +1</span>
+            <span class="tag" onclick="addTai(2)">全求人 +2</span>
+            <span class="tag" onclick="addTai(4)">碰碰胡 +4</span>
+            <span class="tag" onclick="addTai(4)">混一色 +4</span>
+            <span class="tag" onclick="addTai(8)">清一色 +8</span>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-main" onclick="calculateResult()">確認送出 🀄</button>
+            <button class="btn-undo" onclick="undoLast()">回上一步 (撤銷)</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>歷史對戰紀錄</h3>
+        <div class="log-list" id="log_list"></div>
+    </div>
+
+<script>
+    let players = [
+        { id: 0, score: 0 }, { id: 1, score: 0 }, 
+        { id: 2, score: 0 }, { id: 3, score: 0 }
+    ];
+    let history = [];
+    let currentType = 'self'; // 'self' or 'gun'
+    let selectedDealer = 0;
+    let selectedWinner = 0;
+    let selectedLoser = null;
+
+    // 初始化介面
+    function init() {
+        renderBoard();
+        renderPlayerBtns();
+    }
+
+    function renderBoard() {
+        const board = document.getElementById('score_board');
+        board.innerHTML = players.map(p => {
+            const name = document.getElementById(`p${p.id}_name`).value;
+            const statusClass = p.score >= 0 ? 'plus' : 'minus';
+            return `
+                <div class="player-score">
+                    <div>${name}</div>
+                    <div class="score-val ${statusClass}">${p.score}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderPlayerBtns() {
+        const dealerGroup = document.getElementById('dealer_select');
+        const winnerGroup = document.getElementById('winner_select');
+        const loserGroup = document.getElementById('loser_select');
+        
+        const btnsHtml = players.map(p => {
+            const name = document.getElementById(`p${p.id}_name`).value;
+            return `<button class="btn-player" data-id="${p.id}" onclick="selectPlayer(this, ${p.id})">${name}</button>`;
+        }).join('');
+
+        dealerGroup.innerHTML = btnsHtml;
+        winnerGroup.innerHTML = btnsHtml;
+        loserGroup.innerHTML = btnsHtml;
+
+        // 預設選取
+        dealerGroup.children[0].classList.add('active');
+        winnerGroup.children[0].classList.add('active');
+    }
+
+    function selectPlayer(btn, id) {
+        const parent = btn.parentElement;
+        Array.from(parent.children).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        if(parent.id === 'dealer_select') selectedDealer = id;
+        if(parent.id === 'winner_select') selectedWinner = id;
+        if(parent.id === 'loser_select') selectedLoser = id;
+    }
+
+    function setType(type, btn) {
+        currentType = type;
+        Array.from(btn.parentElement.children).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('loser_section').style.display = type === 'gun' ? 'block' : 'none';
+    }
+
+    function addTai(n) {
+        const input = document.getElementById('tai_input');
+        input.value = parseInt(input.value) + n;
+    }
+
+    function calculateResult() {
+        const base = parseInt(document.getElementById('base_money').value);
+        const taiPrice = parseInt(document.getElementById('tai_money').value);
+        const streak = parseInt(document.getElementById('streak_count').value);
+        let taiCount = parseInt(document.getElementById('tai_input').value);
+
+        // 莊家加成計算 (2n + 1)
+        const dealerExtraTai = (2 * streak) + 1;
+        
+        let roundResults = [0, 0, 0, 0];
+        let logMsg = "";
+
+        if (currentType === 'self') {
+            // 自摸：三家賠
+            players.forEach(p => {
+                if (p.id !== selectedWinner) {
+                    let totalTai = taiCount;
+                    // 如果贏家是莊家，或輸家是莊家，都要加台
+                    if (selectedWinner === selectedDealer || p.id === selectedDealer) {
+                        totalTai += dealerExtraTai;
+                    }
+                    const amount = base + (totalTai * taiPrice);
+                    roundResults[p.id] -= amount;
+                    roundResults[selectedWinner] += amount;
+                }
+            });
+            logMsg = `自摸 ${taiCount}台`;
+        } else {
+            // 放槍：一人賠
+            if (selectedLoser === null) { alert("請選擇放槍者"); return; }
+            if (selectedLoser === selectedWinner) { alert("贏家跟輸家不能是同一人"); return; }
+            
+            let totalTai = taiCount;
+            if (selectedWinner === selectedDealer || selectedLoser === selectedDealer) {
+                totalTai += dealerExtraTai;
+            }
+            const amount = base + (totalTai * taiPrice);
+            roundResults[selectedLoser] -= amount;
+            roundResults[selectedWinner] += amount;
+            logMsg = `放槍 ${taiCount}台`;
+        }
+
+        // 更新數據
+        players.forEach((p, index) => p.score += roundResults[index]);
+        history.push({ results: roundResults, msg: logMsg });
+        
+        // 更新歷史紀錄 UI
+        updateLog();
+        renderBoard();
+        
+        // 重置台數
+        document.getElementById('tai_input').value = 0;
+    }
+
+    function updateLog() {
+        const list = document.getElementById('log_list');
+        list.innerHTML = history.slice().reverse().map((h, i) => {
+            return `<div class="log-item"><span>${h.msg}</span><span>${h.results.map(r => r).join(' / ')}</span></div>`;
+        }).join('');
+    }
+
+    function undoLast() {
+        if (history.length === 0) return;
+        const last = history.pop();
+        players.forEach((p, index) => p.score -= last.results[index]);
+        renderBoard();
+        updateLog();
+    }
+
+    init();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>雀神記帳王 Pro (自動存檔版)</title>
+    <title>雀神記帳王 Pro (LINE同步版)</title>
     <style>
         :root {
             --primary-red: #D32F2F;
@@ -11,6 +11,7 @@
             --soft-white: #FFF9F0;
             --win-green: #2E7D32;
             --lose-red: #C62828;
+            --line-green: #06C755;
         }
 
         body {
@@ -63,6 +64,7 @@
         .btn-type.active { background: #555; color: white; }
 
         .btn-main { background: var(--primary-red); color: white; grid-column: span 4; font-size: 18px; padding: 15px; margin-top: 10px; }
+        .btn-line { background: var(--line-green); color: white; grid-column: span 4; margin-top: 5px; padding: 10px; }
         .btn-undo { background: #666; color: white; grid-column: span 4; margin-top: 5px; }
         .btn-reset-tai { background: #eee; color: #333; border: 1px solid #ccc; }
         .btn-danger { background: #f44336; color: white; width: 100%; margin-top: 10px; padding: 10px; }
@@ -123,7 +125,7 @@
         </div>
 
         <div class="btn-group">
-            <button class="btn-main" onclick="calculateResult()">確認送出 🀄</button>
+            <button class="btn-main" onclick="calculateResult()">確認送出並發送 LINE 🀄</button>
             <button class="btn-undo" onclick="undoLast()">回上一步 (撤銷)</button>
         </div>
         <button class="btn-danger" onclick="clearAllData()">🧨 結束這一將 (清除所有資料)</button>
@@ -135,53 +137,30 @@
     </div>
 
 <script>
-    // 初始化變數
     let players = [{id:0, score:0}, {id:1, score:0}, {id:2, score:0}, {id:3, score:0}];
     let history = [];
-    let selectedDealer = 0;
-    let selectedWinner = 0;
-    let selectedLoser = null;
-    let currentType = 'self';
+    let selectedDealer = 0, selectedWinner = 0, selectedLoser = null, currentType = 'self';
 
-    // 啟動載入
-    window.onload = function() {
-        loadData();
-        renderBoard();
-        renderPlayerBtns();
-    };
+    window.onload = function() { loadData(); renderBoard(); renderPlayerBtns(); };
 
-    function getPlayerName(id) {
-        return document.getElementById(`p${id}_name`).value || `玩家${id+1}`;
-    }
+    function getPlayerName(id) { return document.getElementById(`p${id}_name`).value || `玩家${id+1}`; }
 
-    // 同步並存檔
     function saveData() {
-        const data = {
-            players: players,
-            history: history,
-            names: [
-                document.getElementById('p0_name').value,
-                document.getElementById('p1_name').value,
-                document.getElementById('p2_name').value,
-                document.getElementById('p3_name').value
-            ],
+        const data = { players, history, 
+            names: [0,1,2,3].map(i => document.getElementById(`p${i}_name`).value),
             base: document.getElementById('base_money').value,
             tai: document.getElementById('tai_money').value,
-            dealer: selectedDealer,
-            streak: document.getElementById('streak_count').value
+            dealer: selectedDealer, streak: document.getElementById('streak_count').value
         };
         localStorage.setItem('mj_pro_data', JSON.stringify(data));
-        renderBoard();
-        renderPlayerBtns();
+        renderBoard(); renderPlayerBtns();
     }
 
-    // 讀取存檔
     function loadData() {
         const saved = localStorage.getItem('mj_pro_data');
         if (saved) {
             const data = JSON.parse(saved);
-            players = data.players;
-            history = data.history;
+            players = data.players; history = data.history;
             data.names.forEach((name, i) => document.getElementById(`p${i}_name`).value = name);
             document.getElementById('base_money').value = data.base;
             document.getElementById('tai_money').value = data.tai;
@@ -191,18 +170,10 @@
         }
     }
 
-    function clearAllData() {
-        if (confirm("確定要清除所有分數與紀錄嗎？這無法還原喔！")) {
-            localStorage.removeItem('mj_pro_data');
-            location.reload();
-        }
-    }
-
-    // --- 以下為核心邏輯 (與之前相同，但加入 saveData) ---
+    function clearAllData() { if (confirm("確定要清除所有資料嗎？")) { localStorage.removeItem('mj_pro_data'); location.reload(); } }
 
     function renderBoard() {
-        const board = document.getElementById('score_board');
-        board.innerHTML = players.map(p => `
+        document.getElementById('score_board').innerHTML = players.map(p => `
             <div class="player-score" id="board_p${p.id}">
                 <div>${getPlayerName(p.id)}</div>
                 <div class="score-val ${p.score >= 0 ? 'plus' : 'minus'}">${p.score}</div>
@@ -211,16 +182,11 @@
     }
 
     function renderPlayerBtns() {
-        const groups = ['dealer_select', 'winner_select', 'loser_select'];
-        groups.forEach(groupId => {
+        ['dealer_select', 'winner_select', 'loser_select'].forEach(groupId => {
             const container = document.getElementById(groupId);
             let activeId = (groupId === 'dealer_select') ? selectedDealer : (groupId === 'winner_select' ? selectedWinner : selectedLoser);
-            
             container.innerHTML = players.map(p => `
-                <button class="btn-player ${activeId === p.id ? 'active' : ''}" 
-                        data-id="${p.id}" onclick="selectPlayer('${groupId}', ${p.id})">
-                    ${getPlayerName(p.id)}
-                </button>
+                <button class="btn-player ${activeId === p.id ? 'active' : ''}" onclick="selectPlayer('${groupId}', ${p.id})">${getPlayerName(p.id)}</button>
             `).join('');
         });
     }
@@ -232,13 +198,7 @@
         saveData();
     }
 
-    function setType(type, btn) {
-        currentType = type;
-        Array.from(btn.parentElement.children).forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('loser_section').style.display = type === 'gun' ? 'block' : 'none';
-    }
-
+    function setType(type, btn) { currentType = type; Array.from(btn.parentElement.children).forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('loser_section').style.display = type === 'gun' ? 'block' : 'none'; }
     function addTai(n) { document.getElementById('tai_input').value = parseInt(document.getElementById('tai_input').value) + n; }
     function resetTai() { document.getElementById('tai_input').value = 0; }
 
@@ -251,14 +211,14 @@
         
         let roundResults = [0, 0, 0, 0];
         let detailLog = "";
+        let lineMsg = "🀄【雀神戰報】\n";
 
         if (currentType === 'self') {
             players.forEach(p => {
                 if (p.id !== selectedWinner) {
                     let totalTai = taiCount + ((selectedWinner === selectedDealer || p.id === selectedDealer) ? dealerExtraTai : 0);
                     let amt = base + (totalTai * taiPrice);
-                    roundResults[p.id] -= amt;
-                    roundResults[selectedWinner] += amt;
+                    roundResults[p.id] -= amt; roundResults[selectedWinner] += amt;
                 }
             });
             detailLog = `${getPlayerName(selectedWinner)} 自摸 (${taiCount}台)`;
@@ -266,40 +226,46 @@
             if (selectedLoser === null || selectedLoser === selectedWinner) { alert("請正確選擇放槍者"); return; }
             let totalTai = taiCount + ((selectedWinner === selectedDealer || selectedLoser === selectedDealer) ? dealerExtraTai : 0);
             let amt = base + (totalTai * taiPrice);
-            roundResults[selectedLoser] -= amt;
-            roundResults[selectedWinner] += amt;
+            roundResults[selectedLoser] -= amt; roundResults[selectedWinner] += amt;
             detailLog = `${getPlayerName(selectedWinner)} 贏 ${getPlayerName(selectedLoser)} (${taiCount}台)`;
         }
 
-        const prevDealer = selectedDealer;
-        const prevStreak = streak;
-        let nextDealer = selectedDealer;
-        let nextStreak = 0;
-
-        if (selectedWinner === selectedDealer) {
-            nextStreak = streak + 1;
-        } else {
-            nextDealer = (selectedDealer + 1) % 4;
-            setTimeout(() => document.getElementById(`board_p${nextDealer}`).classList.add('next-dealer-blink'), 100);
+        // 組合 LINE 訊息
+        lineMsg += `結果：${detailLog}\n`;
+        if(selectedWinner === selectedDealer || (currentType === 'gun' && selectedLoser === selectedDealer) || currentType === 'self') {
+            lineMsg += `莊家/連莊：+${dealerExtraTai}台\n`;
         }
+        lineMsg += `────────────────\n💰 本局收付：\n`;
+        players.forEach((p, idx) => {
+            lineMsg += `${getPlayerName(idx)}：${roundResults[idx] > 0 ? '+' : ''}${roundResults[idx]}\n`;
+        });
+        lineMsg += `────────────────\n🏆 目前戰績：\n`;
+        players.forEach((p, idx) => {
+            lineMsg += `${getPlayerName(idx)}：${p.score + roundResults[idx]}\n`;
+        });
+
+        // 更新狀態
+        const prevDealer = selectedDealer, prevStreak = streak;
+        let nextDealer = selectedDealer, nextStreak = 0;
+        if (selectedWinner === selectedDealer) { nextStreak = streak + 1; } 
+        else { nextDealer = (selectedDealer + 1) % 4; setTimeout(() => document.getElementById(`board_p${nextDealer}`).classList.add('next-dealer-blink'), 100); }
 
         players.forEach((p, idx) => p.score += roundResults[idx]);
-        history.push({ 
-            results: roundResults, log: detailLog, 
-            prevDealer, prevStreak, nextDealer, nextStreak,
-            dealerExtra: (selectedWinner === selectedDealer || (currentType==='gun' && selectedLoser === selectedDealer) || (currentType==='self')) ? `含莊家${dealerExtraTai}台` : ""
-        });
+        history.push({ results: roundResults, log: detailLog, prevDealer, prevStreak, nextDealer, nextStreak, dealerExtra: (selectedWinner === selectedDealer || (currentType==='gun' && selectedLoser === selectedDealer) || (currentType==='self')) ? `含莊家${dealerExtraTai}台` : "" });
 
         document.getElementById('streak_count').value = nextStreak;
         selectedDealer = nextDealer;
         resetTai();
         saveData();
         updateLog();
+
+        // **跳轉發送 LINE**
+        const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
+        window.location.href = lineUrl;
     }
 
     function updateLog() {
-        const list = document.getElementById('log_list');
-        list.innerHTML = history.slice().reverse().map(h => `
+        document.getElementById('log_list').innerHTML = history.slice().reverse().map(h => `
             <div class="log-item">
                 <strong>${h.log}</strong> <span style="color:var(--primary-red)">${h.dealerExtra}</span><br>
                 <span style="color:#666; font-size:11px;">明細：${h.results.map((r, i) => getPlayerName(i) + (r >= 0 ? '+'+r : r)).join(' , ')}</span>
